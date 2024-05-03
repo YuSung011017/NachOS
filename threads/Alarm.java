@@ -3,6 +3,7 @@ package nachos.threads;
 import nachos.machine.*;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -29,8 +30,19 @@ public class Alarm {
      * thread to yield, forcing a context switch if there is another thread
      * that should be run.
      */
-    public void timerInterrupt() {
-	KThread.currentThread().yield();
+    public void timerInterrupt() { // 500tick 마다 검사를 통해 대기 인터럽트 처리
+        //System.out.println("Alarm 클래스에서 timerInterrupt 실행");
+        //KThread.currentThread().yield();
+
+        Iterator<KThread> it = waitingQueue.keySet().iterator();
+        while (it.hasNext()) {
+            KThread k = it.next();
+            if (waitingQueue.get(k) <= Machine.timer().getTime()) { //대기 인터럽트의 waketime이 지났다면
+                k.ready(); // ready 상태에 넣고
+                it.remove(); // 대기 인터럽트에서 제거
+            }
+        }
+        KThread.currentThread().yield();
     }
 
     /**
