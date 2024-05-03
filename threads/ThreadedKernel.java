@@ -65,6 +65,8 @@ public class ThreadedKernel extends Kernel {
     public void selfTest() {
         new KThread(new PingTest(1)).setName("forked thread").fork();
         new PingTest(0).run();
+        Alarm.selfTest();
+
     /*
 	KThread.selfTest();
 	Semaphore.selfTest();

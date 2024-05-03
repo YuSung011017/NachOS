@@ -2,6 +2,7 @@ package nachos.threads;
 
 import nachos.machine.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -43,6 +44,7 @@ public class Alarm {
             }
         }
         KThread.currentThread().yield();
+
     }
 
     /**
@@ -79,9 +81,11 @@ public class Alarm {
 
         for (int d : durations) {
             t0 = Machine.timer().getTime();
+            System.out.println ("alarmTest1: StartTime " + t0 + " ticks");
             ThreadedKernel.alarm.waitUntil (d);
             t1 = Machine.timer().getTime();
-            System.out.println ("alarmTest1: waited for " + (t1 - t0) + " ticks");
+            System.out.println ("alarmTest1: FinishTime " + t1 + " ticks");
+            System.out.println ("alarmTest1: waited for " + (t1 - t0) + " ticks \n");
         }
     }
 
@@ -90,7 +94,8 @@ public class Alarm {
     // Invoke Alarm.selfTest() from ThreadedKernel.selfTest()
     public static void selfTest() {
         alarmTest1();
+        KThread.currentThread().yield();
 
-        // Invoke your other test methods here ...
+
     }
 }
