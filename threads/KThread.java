@@ -2,6 +2,8 @@ package nachos.threads;
 
 import nachos.machine.*;
 
+import java.util.ArrayList;
+
 /**
  * A KThread is a thread that can be used to execute Nachos kernel code. Nachos
  * allows multiple threads to run concurrently.
@@ -272,12 +274,7 @@ public class KThread {
 	 * call is not guaranteed to return. This thread must not be the current
 	 * thread.
 	 */
-	public void join() {
-		Lib.debug(dbgThread, "Joining to thread: " + toString());
 
-		Lib.assertTrue(this != currentThread);
-
-	}
 
 	/**
 	 * Create the idle thread. Whenever there are no threads ready to be run,
@@ -407,7 +404,57 @@ public class KThread {
 
 		new KThread(new PingTest(1)).setName("forked thread").fork();
 		new PingTest(0).run();
+
+
+		joinTest1();
+		Condition2.selfTest();
 	}
+
+	// Place Join test code in the KThread class and invoke test methods
+	// from KThread.selfTest().
+
+	// Simple test for the situation where the child finishes before
+	// the parent calls join on it.
+
+	public void join() {
+		Lib.debug(dbgThread, "Joining to thread: " + toString()); //현재 쓰레드가 어떤 쓰레드와 Join하려고 하는지 로그를 남깁니다.
+
+		Lib.assertTrue(this != currentThread); //현재 쓰레드와 Join하려는 쓰레드가 동일한지 확인, 자기 자신 join 방지
+
+		if (this.status == statusFinished)//대상 쓰레드가 이미 종료되었는지 확인:
+			return;
+
+		boolean intStatus = Machine.interrupt().disable(); //동기화 문제를 방지하기 위해 인터럽트를 비활성화
+		joinedThread.add((KThread) currentThread); //현재 쓰레드를 대상 쓰레드의 Join 큐에 추가
+		currentThread.sleep();
+		Machine.interrupt().restore(intStatus); //인터럽트 상태 복원
+
+	}
+	static void joinTest1() {
+		KThread child1 = new KThread( new Runnable () {
+			public void run() {
+				System.out.println("I (heart) Nachos!");
+			}
+		});
+
+		child1.setName("child1").fork();
+
+		// We want the child to finish before we call join.  Although
+		// our solutions to the problems cannot busy wait, our test
+		// programs can!
+
+		// 자식 쓰레드가 종료될 시간을 주기 위해 부모 쓰레드가 busy 대기
+		for (int i = 0; i < 5; i++) {
+			System.out.println ("busy...");
+			KThread.currentThread().yield();
+		}
+
+		child1.join();
+		System.out.println("After joining, child1 should be finished.");
+		System.out.println("is it? " + (child1.status == statusFinished));
+		Lib.assertTrue((child1.status == statusFinished), " Expected child1 to be finished.");
+	}
+
 
 	private static final char dbgThread = 't';
 
@@ -418,6 +465,7 @@ public class KThread {
 	 */
 	public Object schedulingState = null;
 
+	private static ArrayList joinedThread = new ArrayList<>(); //자식 쓰레드 담아놓을 공간 생성,
 	private static final int statusNew = 0;
 	private static final int statusReady = 1;
 	private static final int statusRunning = 2;

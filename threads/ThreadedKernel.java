@@ -2,6 +2,9 @@ package nachos.threads;
 
 import nachos.machine.*;
 
+import static nachos.threads.KThread.joinTest1;
+
+
 /**
  * A multi-threaded OS kernel.
  */
@@ -63,9 +66,11 @@ public class ThreadedKernel extends Kernel {
 
 
     public void selfTest() {
-        new KThread(new PingTest(1)).setName("forked thread").fork();
+       new KThread(new PingTest(1)).setName("forked thread").fork();
         new PingTest(0).run();
         Alarm.selfTest();
+    joinTest1();
+    Condition2.selfTest();
 
     /*
 	KThread.selfTest();
